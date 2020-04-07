@@ -28,6 +28,8 @@ use crate::device::Device as D;
 use crate::error::*;
 use crate::platform::linux::sys::*;
 use crate::platform::posix::{Fd, SockAddr};
+use crate::platform::posix;
+use std::sync::Arc;
 
 /// A TUN device using the TUN/TAP Linux driver.
 pub struct Device {
@@ -147,6 +149,12 @@ impl Device {
     /// Return whether the device has packet information
     pub fn has_packet_information(&mut self) -> bool {
         self.pi_enabled
+    }
+
+    /// Split the interface into a `Reader` and `Writer`.
+    pub fn split(self) -> (posix::Reader, posix::Writer) {
+        let fd = Arc::new(self.tun);
+        (posix::Reader(fd.clone()), posix::Writer(fd.clone()))
     }
 
     #[cfg(feature = "mio")]
